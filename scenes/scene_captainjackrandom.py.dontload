@@ -1,0 +1,31 @@
+import director, random, logging
+from constants import *
+logger = logging.getLogger(__name__)
+
+ACTOR_CHANNEL = "left";
+AMBIENT_CHANNEL = "right";
+global MOST_RECENT_SOUND_PLAYED;
+MOST_RECENT_SOUND_PLAYED = -1;
+
+# Setup sounds to play at random intervals
+# Additional code added (based on xxx) to check that the last used Sound is not immediately re-used.
+def background_sound():
+	global MOST_RECENT_SOUND_PLAYED
+	sounds = ("scenes/audio/accordingtoplan.wav", "scenes/audio/muchmorebetter.wav", "scenes/audio/thatwaydirection.wav",)
+	RANDOM_SOUND=random.choice(sounds)
+	#print RANDOM_SOUND
+	while MOST_RECENT_SOUND_PLAYED == RANDOM_SOUND:
+		logger.debug("Duplicate Sound Chosen. Choosing Again.")
+		RANDOM_SOUND = random.choice(sounds)
+	MOST_RECENT_SOUND_PLAYED = RANDOM_SOUND
+	director.play_sound(RANDOM_SOUND, volume=1.0, channel=ACTOR_CHANNEL, origin="JackRandom")
+	# director.schedule(delay in seconds, callback, args)
+	# note, the range is going to need to have its staring point be longer than the longest wave, else it will start playing over one another.
+	director.schedule(random.randrange(20, 40), background_sound, ())
+
+# Setup ambient track to loop indefinitely in background
+director.play_sound("scenes/audio/marketplace_1.wav", volume=0.5, delay=0, loops=-1, channel=AMBIENT_CHANNEL, origin="JackRandom")
+
+# kick off the random background sounds
+# director.schedule(delay in seconds, callback, args)
+director.schedule(5, background_sound, ())
