@@ -1,5 +1,10 @@
 import os, sched, heapq, threading, logging
 
+#import pygame.display
+#os.environ["SDL_VIDEODRIVER"] = "fbcon" # or 'dummy' or 'fbcon'
+#pygame.display.init()
+#screen = pygame.display.set_mode((1,1))
+
 logger = logging.getLogger(__name__)
 
 # get the GPIO Library
@@ -30,10 +35,12 @@ _events = []
 _q_lock = threading.RLock()
 
 def init():
-    print "Init IO"
+    logger.info("=======================================================================================")
+
+    logger.info("Init IO")
     GPIO.setmode(GPIO.BCM)
 
-    print "Init sound"
+    logger.info("Init Sound")
     mixer.init()
 
 init()
@@ -76,7 +83,7 @@ def add_input(channel, pull_up_down=PUD_UP):
     e.g to define a constant for a push button on GPIO 5
     BUTTON_5 = director.add_input(5)
     """
-    logger.info("Configure input %d", channel)
+    logger.info("Configure Input %d", channel)
     # Default to PUD_UP so switch connect to ground
     GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
     return channel
@@ -93,7 +100,7 @@ def add_output(channel, initial=False):
     so the same call with default output HIGH would be
     RELAY_5 = director.add_output(5, True)
     """
-    logger.info("Configure output %d", channel)
+    logger.info("Configure Output %d", channel)
     GPIO.setup(channel, GPIO.OUT, initial=initial)
     return channel
 
@@ -164,7 +171,7 @@ def schedule(delay, callback, args):
 def load_sound(sound):
     return mixer.Sound(sound)
 
-def play_sound(sound, delay=0, loops=0, maxtime=0, fade_ms=0, channel=None, volume=1):
+def play_sound(sound, delay=0, loops=0, maxtime=0, fade_ms=0, channel=None, volume=1, origin="Unknown"):
     """
     Play the sound at the given file location.
     """
@@ -172,7 +179,7 @@ def play_sound(sound, delay=0, loops=0, maxtime=0, fade_ms=0, channel=None, volu
     if ( delay > 0 ):
         _create_timer(delay, play_sound, (sound,0,loops,maxtime,fade_ms,channel,volume,))
     else:
-        logger.info("Playing sound %s loops %s maxtime %s", sound, loops, maxtime)
+        logger.info("Scene %s - Playing sound %s loops %s maxtime %s", origin, sound, loops, maxtime)
         if not isinstance(sound, mixer.Sound):
             sound = mixer.Sound(sound)
 
@@ -191,7 +198,7 @@ def cleanup():
     logger.info("Flush queue")
     with _q_lock:
         _events = []
-    print "Cleanup IO"
+    logger.info("Cleanup IO")
     GPIO.cleanup() # cleanup all GPIO
     mixer.quit()
 
